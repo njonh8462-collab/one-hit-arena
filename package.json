@@ -1,7 +1,0 @@
-{
-  "name": "one-hit-arena",
-  "version": "8.0.0",
-  "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "ws": "^8.18.0" }
-}
