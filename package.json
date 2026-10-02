@@ -1,0 +1,25 @@
+{
+  "name": "one-hit-arena",
+  "version": "12.0.0",
+  "description": "Multiplayer top-down arena game with WebSocket - smooth netcode, prediction, interpolation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "keywords": [
+    "game",
+    "multiplayer",
+    "arena",
+    "websocket",
+    "canvas",
+    "realtime"
+  ],
+  "license": "MIT",
+  "private": true
+}
