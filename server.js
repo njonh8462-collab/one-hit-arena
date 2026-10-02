@@ -758,16 +758,20 @@ function tickWorld(){
 
 function send(ws, obj){ if(ws && ws.readyState === 1){ try{ ws.send(JSON.stringify(obj)); }catch(e){} } }
 
+
+
 function buildStateFor(p){
-  const r = CFG.aoiRadius, r2 = r*r;
-  const nearP = playerHash.query(p.x, p.y, r, p.aoiBuf);
+  // ✅ اصلاح: از نام aoiR / aoiR2 استفاده می‌کنیم تا با r1/r2 سراسری تداخل نکند
+  const aoiR  = CFG.aoiRadius;
+  const aoiR2 = aoiR * aoiR;
+
+  const nearP = playerHash.query(p.x, p.y, aoiR, p.aoiBuf);
   const pOut = [];
   for(const q of nearP){
-    // ✅ حذف خود بازیکن از pOut
     if(q.id === p.id) continue;
     if(!q.alive) continue;
     const dx = wrapDelta(q.x, p.x), dy = wrapDelta(q.y, p.y);
-    if(dx*dx + dy*dy > r2) continue;
+    if(dx*dx + dy*dy > aoiR2) continue;
     pOut.push({
       id:q.id, n:q.name, c:q.charId, tm:q.team, h:q.hue,
       x:r1(q.x), y:r1(q.y), a:r2(q.angle), al:q.alive ? 1 : 0,
@@ -777,33 +781,41 @@ function buildStateFor(p){
       wp:r1(q.walkPhase), ac:r2(q.atkCd)
     });
   }
-  const nearE = enemyHash.query(p.x, p.y, r, []);
+
+  const nearE = enemyHash.query(p.x, p.y, aoiR, []);
   const eOut = [];
   for(const e of nearE){
     if(e.dead) continue;
     const dx = wrapDelta(e.x, p.x), dy = wrapDelta(e.y, p.y);
-    if(dx*dx + dy*dy > r2) continue;
+    if(dx*dx + dy*dy > aoiR2) continue;
     const t = MBYID[e.typeId]; if(!t) continue;
     eOut.push({ id:e.id, ty:e.typeId, x:r1(e.x), y:r1(e.y), a:r2(e.angle),
       h:Math.round(e.hue), sa:r2(e.spawnAnim), wp:r1(e.walkPhase), wb:r1(e.wobblePhase),
       hp:e.hp, mhp:t.hp });
   }
+
   const aOut = [];
   for(const a of arrows){
     const dx = wrapDelta(a.x, p.x), dy = wrapDelta(a.y, p.y);
-    if(dx*dx + dy*dy > r2) continue;
+    if(dx*dx + dy*dy > aoiR2) continue;
     aOut.push({ id:a.id, ownerId:a.ownerId, x:r1(a.x), y:r1(a.y), a:r2(a.angle), h:Math.round(a.hue) });
   }
+
   return {
     t:'state', tick,
     me:{ x:r1(p.x), y:r1(p.y), a:r2(p.angle), al:p.alive?1:0,
       hp:p.hp, mhp:pMaxHp(p), dmg:pDamage(p),
       k:p.kills, d:p.deaths, lv:p.level, xp:p.xp, xn:p.xpNeed,
       sp:r2(p.spawnProt), sc:r2(p.shieldCharge), bf:r2(p.blockFlash),
-      rs:r2(p.respawn), dc:r2(p.dashCd), ac:r2(p.atkCd), swd:p.swing>0?1:0 },  // ✅ ac
+      rs:r2(p.respawn), dc:r2(p.dashCd), ac:r2(p.atkCd), swd:p.swing>0?1:0 },
     p:pOut, e:eOut, ar:aOut, lb:leaderboard
   };
 }
+
+
+
+
+  
 
 function broadcastStates(){ for(const p of players.values()) send(p.ws, buildStateFor(p)); }
 function broadcast(obj, exceptId){
